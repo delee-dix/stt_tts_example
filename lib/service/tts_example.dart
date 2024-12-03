@@ -25,12 +25,30 @@ class TtsService {
   }
 
   void _initTtsHandlers() {
-    flutterTts.setStartHandler(() => ttsState = TtsState.playing);
-    flutterTts.setCompletionHandler(() => ttsState = TtsState.stopped);
-    flutterTts.setCancelHandler(() => ttsState = TtsState.stopped);
-    flutterTts.setPauseHandler(() => ttsState = TtsState.paused);
-    flutterTts.setContinueHandler(() => ttsState = TtsState.continued);
-    flutterTts.setErrorHandler((msg) => ttsState = TtsState.stopped);
+    flutterTts.setStartHandler(() {
+      print("Playing");
+      ttsState = TtsState.playing;
+    });
+    flutterTts.setCompletionHandler(() {
+      print("Complete");
+      ttsState = TtsState.stopped;
+    });
+    flutterTts.setCancelHandler(() {
+      print("Cancel");
+      ttsState = TtsState.stopped;
+    });
+    flutterTts.setPauseHandler(() {
+      print("Paused");
+      ttsState = TtsState.paused;
+    });
+    flutterTts.setContinueHandler(() {
+      print("Continued");
+      ttsState = TtsState.continued;
+    });
+    flutterTts.setErrorHandler((msg) {
+      print("error $msg");
+      ttsState = TtsState.stopped;
+    });
   }
 
   Future<void> _setAwaitOptions() async {
@@ -46,8 +64,10 @@ class TtsService {
   }
 
   Future<void> _getDefaultVoice() async {
-    print("Default voice data: $language");
-    language = await flutterTts.getDefaultVoice;
+    var language = await flutterTts.getDefaultVoice;
+    if (language != null) {
+      print(language);
+    }
   }
 
   void setVoiceText(String text) {
@@ -55,8 +75,8 @@ class TtsService {
   }
 
   Future<void> speak() async {
+    await flutterTts.setSpeechRate(speechRate);
     if (_newVoiceText != null && _newVoiceText!.isNotEmpty) {
-      await flutterTts.setSpeechRate(speechRate);
       await flutterTts.speak(_newVoiceText!);
     }
   }
@@ -74,16 +94,17 @@ class TtsService {
   }
 
   Future<void> changedEngines(String? selectedEngine) async {
-    engine = selectedEngine;
-    await flutterTts.setEngine(selectedEngine!);
     language = null;
+    engine = selectedEngine;
+    await flutterTts.setEngine(engine!);
   }
 
   Future<void> changedLanguage(String? selectedType) async {
     language = selectedType;
     flutterTts.setLanguage(language!);
     if (Platform.isAndroid) {
-      isCurrentLanguageInstalled = await flutterTts.isLanguageInstalled(language!);
+      // isCurrentLanguageInstalled = await flutterTts.isLanguageInstalled(language!);
+      flutterTts.isLanguageInstalled(language!).then((value) => isCurrentLanguageInstalled = (value as bool));
     }
   }
 }
